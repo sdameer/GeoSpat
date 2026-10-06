@@ -4,7 +4,7 @@ from django.db import transaction
 
 import geopandas as gpd
 from rest_framework import serializers
-from app_geo.models import GeoSpatialFile , GeoFeature
+from app_geo.models import GeoSpatialFile, GeoFeature
 
 from shapely.geometry import mapping
 
@@ -19,21 +19,20 @@ class AddGeoSpatialDataSerializer(serializers.ModelSerializer):
             "feature_count",
             "status",
         ]
-        
+
     def validate_file(self, file):
         """
            only the zip and kml files are accepted for this api     
-        """        
+        """
         if not file.name.lower().endswith((".zip", ".kml")):
             raise serializers.ValidationError(
                 "Only .zip and .kml files are supported."
             )
 
-        return file     
-
+        return file
 
     @transaction.atomic
-    # atomicity : either complete hte whole process 
+    # atomicity : either complete hte whole process
     # or cancel the whole process
     def create(self, validated_data):
         uploaded_file = validated_data["file"]
@@ -70,7 +69,8 @@ class AddGeoSpatialDataSerializer(serializers.ModelSerializer):
 
                 # Convert properties into JSON-safe data
                 properties = json.loads(
-                    gdf.iloc[[index]].drop(columns="geometry").to_json(orient="records")
+                    gdf.iloc[[index]].drop(
+                        columns="geometry").to_json(orient="records")
                 )[0]
 
                 area = None
@@ -118,18 +118,32 @@ class AddGeoSpatialDataSerializer(serializers.ModelSerializer):
         except Exception:
             obj.status = "FAILED"
             obj.save()
-            raise    
-        
-        
-        
-        
+            raise
+
+
 class GetGeoSpatialDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = GeoSpatialFile
-        exclude = ["file","uploaded_at"]
-        
-        
+        exclude = ["file", "uploaded_at"]
+
+
+class GeoFeatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeoFeature
+        fields = (
+            "feature_index",
+            "geometry_type",
+            "area",
+            "length",
+        )
+
+
+
 class GetGeoSpatialDataSerializerMeasurements(serializers.ModelSerializer):
-    class Meta :
+    measurements = GeoFeatureSerializer(
+        read_only=True, many=True, source="features")
+
+    class Meta:
         model = GeoSpatialFile
-        
+        fields = ("id", "file_name", "crs",
+                  "feature_count", "status", "measurements")
