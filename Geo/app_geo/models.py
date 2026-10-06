@@ -3,9 +3,9 @@ from django.db import models
 
 class GeoSpatialFile(models.Model):
     file = models.FileField(upload_to="geospatial/")
-    file_name = models.CharField(max_length=255)
+    file_name = models.CharField(max_length=255, null=True, blank=True)
     crs = models.CharField(max_length=100)
-    feature_count = models.IntegerField()
+    feature_count = models.IntegerField(null=True, blank=True)
     status = models.CharField(max_length=20, default="PROCESSING")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
