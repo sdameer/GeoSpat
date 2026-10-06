@@ -1,3 +1,5 @@
 from django.contrib import admin
+from app_geo.models import GeoSpatialFile, GeoFeature
 
-# Register your models here.
+admin.site.register(GeoSpatialFile)
+admin.site.register(GeoFeature)
